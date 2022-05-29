@@ -13,9 +13,7 @@
 ##V0.1实现了server监听local:8888
 
 ```bash
-feat:
+type(scope) : subject
 ```
 
 ![image-20220529184156654](/Users/zeke/GolandProjects/WebProject/README.assets/image-20220529184156654.png)
-
-![](https://gitee.com/zekechin/pic/raw/master/image-20220529184016323.png)
