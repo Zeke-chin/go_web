@@ -16,4 +16,4 @@
 type(scope) : subject
 ```
 
-![image-20220529184156654](/Users/zeke/GolandProjects/WebProject/README.assets/image-20220529184156654.png)
+![image-20220529185307480](README.assets/image-20220529185307480.png)
