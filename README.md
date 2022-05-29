@@ -10,6 +10,7 @@
 >
 > 3.git的规范提交**type(scope) : subject** 
 
-##V0.1 实现了server监听local:8888
+# V0.1 实现了server监听local:8888
 
 ![image-20220529185307480](README.assets/image-20220529185307480.png)
+
