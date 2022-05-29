@@ -19,6 +19,7 @@ func NewServer(ip string, port int) *Server {
 	return server
 }
 
+// Handler 业务
 func (s *Server) Handler(conn net.Conn) {
 	//业务...
 	fmt.Println("链接成功")
@@ -34,7 +35,6 @@ func (s *Server) Start() {
 	}
 	//close listen socket
 	defer listener.Close()
-
 	for {
 		//accept 接收请求
 		conn, err := listener.Accept()
