@@ -35,14 +35,14 @@ func (s *Server) Start() {
 	//close listen socket
 	defer listener.Close()
 
-	//accept 接收请求
 	for {
+		//accept 接收请求
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("listener accept err:", err)
 			continue
 		}
+		//do handle 做业务
 		go s.Handler(conn)
 	}
-	//do handle 做业务
 }
