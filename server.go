@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -34,7 +35,7 @@ func (s *Server) Handler(conn net.Conn) {
 	//业务...
 	//fmt.Println("链接成功")
 
-	//创建链接服务器的用户
+	//创建连接服务器的用户
 	user := NewUser(conn)
 
 	//用户上线,将用户加入OnlineMap
@@ -45,6 +46,29 @@ func (s *Server) Handler(conn net.Conn) {
 	//给所以用户广播新用户上线消息
 	s.BroadCast(user, "已上线")
 
+	//接收客户端发来的消息
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := conn.Read(buf)
+			// n是int型 用户下线之0
+			if n == 0 {
+				s.BroadCast(user, "已下线")
+				return
+			}
+			//error
+			if err != nil {
+				fmt.Println(err)
+				return
+			} else if err != nil && err != io.EOF {
+				fmt.Println("Conn Read err:", err)
+				return
+			}
+			// 读取用户信息(除去'\n') 并广播
+			msg := string(buf[:n-1])
+			s.BroadCast(user, msg)
+		}
+	}()
 	//当前Handler阻塞
 	select {}
 }
