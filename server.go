@@ -36,15 +36,11 @@ func (s *Server) Handler(conn net.Conn) {
 	//fmt.Println("链接成功")
 
 	//创建连接服务器的用户
-	user := NewUser(conn)
+	user := NewUser(conn, s)
 
-	//用户上线,将用户加入OnlineMap
-	s.mapLock.Lock()
-	s.OnlineMap[user.Name] = user
-	s.mapLock.Unlock()
-
-	//给所以用户广播新用户上线消息
-	s.BroadCast(user, "已上线")
+	//用户上线
+	//添加进OnlineMap并广播
+	user.OnLine()
 
 	//接收客户端发来的消息
 	go func() {
@@ -53,7 +49,7 @@ func (s *Server) Handler(conn net.Conn) {
 			n, err := conn.Read(buf)
 			// n是int型 用户下线之0
 			if n == 0 {
-				s.BroadCast(user, "已下线")
+				user.OffLine()
 				return
 			}
 			//error
@@ -66,7 +62,7 @@ func (s *Server) Handler(conn net.Conn) {
 			}
 			// 读取用户信息(除去'\n') 并广播
 			msg := string(buf[:n-1])
-			s.BroadCast(user, msg)
+			user.DoMessage(msg)
 		}
 	}()
 	//当前Handler阻塞
