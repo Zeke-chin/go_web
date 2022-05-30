@@ -6,20 +6,20 @@ type User struct {
 	Name string
 	Addr string
 	C    chan string
-	coon net.Conn
+	conn net.Conn
 
 	server *Server
 }
 
 // NewUser 创建一个用户的API
-func NewUser(coon net.Conn, server *Server) *User {
-	userAddr := coon.RemoteAddr().String()
+func NewUser(conn net.Conn, server *Server) *User {
+	userAddr := conn.RemoteAddr().String()
 
 	user := &User{
 		Name:   userAddr,
 		Addr:   userAddr,
 		C:      make(chan string),
-		coon:   coon,
+		conn:   conn,
 		server: server,
 	}
 	//启动一个go 用来监听当前User的消息
@@ -52,13 +52,31 @@ func (user *User) OffLine() {
 
 // DoMessage 用户处理信息业务
 func (user *User) DoMessage(msg string) {
-	user.server.BroadCast(user, msg)
+	if msg == "who" {
+		//查询当前在线用户都有哪些
+
+		user.server.mapLock.Lock()
+		// 大坑！————User不能写成user不然会导致"user.SendMsg(onlineMsg)"发送给每个用户
+		for _, User := range user.server.OnlineMap {
+			onlineMsg := "[" + User.Addr + "]" + User.Name + ":" + "在线...\n"
+			user.SendMsg(onlineMsg)
+		}
+		user.server.mapLock.Unlock()
+
+	} else {
+		user.server.BroadCast(user, msg)
+	}
+}
+
+// SendMsg 给当前User对应的客户端 发送消息
+func (user *User) SendMsg(msg string) {
+	user.conn.Write([]byte(msg))
 }
 
 // ListenMessage 监听User chan的方法，一旦有消息就发送给客户端
 func (user *User) ListenMessage() {
 	for {
 		meg := <-user.C
-		user.coon.Write([]byte(meg + "\n"))
+		user.conn.Write([]byte(meg + "\n"))
 	}
 }
