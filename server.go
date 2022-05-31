@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -42,6 +43,9 @@ func (s *Server) Handler(conn net.Conn) {
 	//添加进OnlineMap并广播
 	user.OnLine()
 
+	//监听用户是否活跃的channel
+	isLive := make(chan bool)
+
 	//接收客户端发来的消息
 	go func() {
 		buf := make([]byte, 4096)
@@ -60,13 +64,29 @@ func (s *Server) Handler(conn net.Conn) {
 				fmt.Println("Conn Read err:", err)
 				return
 			}
-			// 读取用户信息(除去'\n') 并广播
+			// 读取用户信息(除去'\n') 并 广播
 			msg := string(buf[:n-1])
 			user.DoMessage(msg)
+			//用户的任意消息
+			isLive <- true
 		}
 	}()
 	//当前Handler阻塞
-	select {}
+	for {
+		select {
+		//当前用户是活跃的  重置定时器
+		case <-isLive:
+		//不做任何事情 为了激活select 更新定时器
+		//超时 关闭User
+		case <-time.After(10 * time.Second):
+			user.SendMsg("你超时了,已踢出" + "\n")
+			close(user.C)
+			conn.Close()
+			return
+
+		}
+	}
+
 }
 
 // Start 实现服务器接口的方法
