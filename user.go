@@ -52,9 +52,8 @@ func (user *User) OffLine() {
 
 // DoMessage 用户处理信息业务
 func (user *User) DoMessage(msg string) {
+	// 查询当前在线用户都有哪些
 	if msg == "who" {
-		//查询当前在线用户都有哪些
-
 		user.server.mapLock.Lock()
 		// 大坑！————User不能写成user不然会导致"user.SendMsg(onlineMsg)"发送给每个用户
 		for _, User := range user.server.OnlineMap {
@@ -62,6 +61,23 @@ func (user *User) DoMessage(msg string) {
 			user.SendMsg(onlineMsg)
 		}
 		user.server.mapLock.Unlock()
+
+		// 更改用户名 -> rename|张三
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		NewName := msg[7:]
+
+		_, ok := user.server.OnlineMap[NewName]
+		if ok {
+			user.SendMsg("该用户名已被占用\n")
+		} else {
+			user.server.mapLock.Lock()
+			delete(user.server.OnlineMap, user.Name)
+			user.server.OnlineMap[NewName] = user
+			user.server.mapLock.Unlock()
+
+			user.Name = NewName
+			user.SendMsg("您已更改用户名:" + user.Name + "\n")
+		}
 
 	} else {
 		user.server.BroadCast(user, msg)
