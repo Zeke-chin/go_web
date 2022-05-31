@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"net"
+	"strings"
+)
 
 type User struct {
 	Name string
@@ -52,8 +55,9 @@ func (user *User) OffLine() {
 
 // DoMessage 用户处理信息业务
 func (user *User) DoMessage(msg string) {
-	// 查询当前在线用户都有哪些
 	if msg == "who" {
+		// Message功能1：查询当前在线用户
+		// eg: who
 		user.server.mapLock.Lock()
 		// 大坑！————User不能写成user不然会导致"user.SendMsg(onlineMsg)"发送给每个用户
 		for _, User := range user.server.OnlineMap {
@@ -62,8 +66,9 @@ func (user *User) DoMessage(msg string) {
 		}
 		user.server.mapLock.Unlock()
 
-		// 更改用户名 -> rename|张三
 	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		// Message功能2: 更改用户名
+		// eg: rename|张三
 		NewName := msg[7:]
 
 		_, ok := user.server.OnlineMap[NewName]
@@ -78,15 +83,48 @@ func (user *User) DoMessage(msg string) {
 			user.Name = NewName
 			user.SendMsg("您已更改用户名:" + user.Name + "\n")
 		}
+	} else if len(msg) > 4 && msg[:3] == "to|" {
+		// Message功能3: 私聊
+		// eg: to|jack|Hello
+
+		//a 获取对方用户名
+		remoteName := strings.Split(msg, "|")[1]
+		if remoteName == "" {
+			user.SendMsg("消息格式错误,请使用正确格式·to|username|message·\neg: to|jack|Hello\n")
+			return
+		}
+		//b 根据用户名 获取对应User对象
+		remoteUser, ok := user.server.OnlineMap[remoteName]
+		if !ok {
+			user.SendMsg("该用户不存在\n")
+			return
+		} else if remoteName == user.Name {
+			user.SendMsg("不允许对自己发起私聊\n")
+			return
+		}
+		//c 获取消息内容 通过User对象将消息发送出去
+		remoteMsg := strings.Split(msg, "|")[2]
+		if remoteMsg == "" {
+			user.SendMsg("不能发送空消息\n")
+			return
+		} else {
+			remoteUser.SendMsg(user.Name + "对您说:" + remoteMsg + "\n")
+		}
 
 	} else {
+		// Message功能4: 发送消息
+		// eg: Hello
 		user.server.BroadCast(user, msg)
 	}
 }
 
 // SendMsg 给当前User对应的客户端 发送消息
 func (user *User) SendMsg(msg string) {
-	user.conn.Write([]byte(msg))
+	if msg == "" {
+		user.conn.Write([]byte("不能发送空消息"))
+	} else {
+		user.conn.Write([]byte(msg))
+	}
 }
 
 // ListenMessage 监听User chan的方法，一旦有消息就发送给客户端

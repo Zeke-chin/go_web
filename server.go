@@ -78,8 +78,8 @@ func (s *Server) Handler(conn net.Conn) {
 		case <-isLive:
 		//不做任何事情 为了激活select 更新定时器
 		//超时 关闭User
-		case <-time.After(10 * time.Second):
-			user.SendMsg("你超时了,已踢出" + "\n")
+		case <-time.After(500 * time.Second):
+			user.SendMsg("你超时了,已踢出")
 			close(user.C)
 			conn.Close()
 			return
@@ -117,8 +117,12 @@ func (s *Server) Start() {
 
 // BroadCast 广播消息的方法
 func (s *Server) BroadCast(user *User, msg string) {
-	sendMsg := "[" + user.Addr + "]" + user.Name + ":" + msg
-	s.Message <- sendMsg
+	if msg == "" {
+		user.SendMsg("不能发送空白消息\n")
+	} else {
+		sendMsg := "[" + user.Addr + "]" + user.Name + ":" + msg
+		s.Message <- sendMsg
+	}
 }
 
 // ListenMessage 监听广播消息的方法
