@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 var serverIp string
@@ -51,6 +53,9 @@ func main() {
 		fmt.Println(">>>>>>>连接服务器失败")
 	}
 
+	//创建一个goroutine 来处理server回执消息
+	go client.DealResponse()
+
 	fmt.Println(">>>>>>>连接服务器成功")
 
 	//启动客户端业务
@@ -71,6 +76,7 @@ func (c *Client) Run() {
 			break
 		case 3:
 			//修改用户名
+			c.UpdateName()
 			break
 		case 0:
 			//退出
@@ -79,6 +85,7 @@ func (c *Client) Run() {
 	}
 }
 
+// menu 选择菜单
 func (c *Client) menu() bool {
 	var f int
 	fmt.Println("1.公聊模式")
@@ -98,4 +105,40 @@ func (c *Client) menu() bool {
 		return false
 	}
 
+}
+
+// UpdateName 更新用户名方法
+func (c *Client) UpdateName() bool {
+	fmt.Println(">>>>>>请输入你要更改的姓名")
+	fmt.Scanln(&c.Name)
+	//_, err := fmt.Scanln(&c.Name)
+	//if err != nil {
+	//	fmt.Println("Scan err:", err)
+	//	return false
+	//}
+	sendMSg := "rename|" + c.Name + "\n"
+
+	_, err := c.Conn.Write([]byte(sendMSg))
+	if err != nil {
+		fmt.Println("Conn.Write err:", err)
+		return false
+	}
+	return true
+}
+
+// DealResponse 处理server回应的消息 直接显示在client
+func (c *Client) DealResponse() {
+	//一旦client。conn有数据,就copy到stdout,并永久阻塞监听
+	_, err := io.Copy(os.Stdout, c.Conn)
+	if err != nil {
+		fmt.Println("io.Copy err", err)
+		return
+	}
+	/*与一下代码相等
+	for{
+		buf := make([]byte, 4096)
+		client.conn.Read(buf)
+		fmt.Println(buf)
+	}
+	*/
 }
