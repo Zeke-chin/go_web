@@ -1,4 +1,4 @@
-# go_web
+#go_web_Public Chat Rooms
 
 > 这是一个新手go_web项目
 >
@@ -85,3 +85,13 @@
 # V0.94 客户端公聊功能
 
 ![image-20220602221931428](README.assets/image-20220602221931428.png)
+
+
+
+# 0.95 客户端私聊功能
+
+![image-20220602225734753](README.assets/image-20220602225734753.png)
+
+
+
+> 参考：[B站视频](https://www.bilibili.com/video/BV1gf4y1r79E?p=1)
