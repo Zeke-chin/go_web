@@ -70,6 +70,7 @@ func (c *Client) Run() {
 		switch c.Flag {
 		case 1:
 			//公聊模式
+			c.PublicChat()
 			break
 		case 2:
 			//私聊模式
@@ -141,4 +142,39 @@ func (c *Client) DealResponse() {
 		fmt.Println(buf)
 	}
 	*/
+}
+
+// PublicChat 公聊模式
+func (c *Client) PublicChat() {
+	//用户输入
+	var chatMsg string
+
+	fmt.Println(">>>>>>请输入聊天内容,exit推出.")
+	_, err := fmt.Scanln(&chatMsg)
+	if err != nil {
+		fmt.Println("Scan err:", err)
+		return
+	}
+
+	for chatMsg != "exit" {
+		//信息发给服务器
+
+		//消息不为空
+		if len(chatMsg) != 0 {
+			sendMsg := chatMsg + "\n"
+			_, err := c.Conn.Write([]byte(sendMsg))
+			if err != nil {
+				fmt.Println("Conn.Write err:", err)
+				break
+			}
+		}
+
+		chatMsg = ""
+		fmt.Println(">>>>>>请输入聊天内容,exit推出.")
+		_, err := fmt.Scanln(&chatMsg)
+		if err != nil {
+			fmt.Println("Scan err:", err)
+			return
+		}
+	}
 }
