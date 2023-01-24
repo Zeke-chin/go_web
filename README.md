@@ -1,4 +1,4 @@
-# go_web_Public Chat Rooms
+# Go_web Public Chat Rooms
 
 > 这是一个新手go_web项目
 >
